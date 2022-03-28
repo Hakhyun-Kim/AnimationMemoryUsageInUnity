@@ -1,5 +1,5 @@
 # Animation Memory Usage in Unity [![License](https://img.shields.io/badge/License-MIT-lightgrey.svg?style=flat)](http://mit-license.org)
-Best Practices for Optimizing Animation Memory Usage - This repository attempts to best analyze all possible outcomes that could result in less than optimal memory usage when bringing in different types of 3D animations into Unity.  While animations are not typically the most memory-intensive assets in a project, many 3D mobile games are very animation heavy, and, as such ,animation represents a significant part of the data that needs optimization.
+애니메이션 메모리 사용량 최적화 사례 - 이 리포지토리는 다양한 유형의 3D 애니메이션을 Unity로 가져올 때 최적의 메모리 사용을 위해서 모든 가능한 결과를 분석하려고 합니다. 애니메이션은 일반적으로 프로젝트에서 가장 메모리를 많이 사용하는 Asset이 아니지만 많은 3D 모바일 게임은 애니메이션이 매우 많기 때문에 최적화가 필요할 수 있습니다.
 
 ## Conclusions
 This section summarizes all conclusions reached after studying the data.
@@ -7,68 +7,67 @@ This section summarizes all conclusions reached after studying the data.
 ![](/Screenshots/WalkAnimation.gif)
 
 ### Summary
-It is best to use complex rigs (as complex they need to be to achieve the animation in the DCC package) to generate simple single hierarchy rig skeletons and animations with the minimum amount of keys possible and import it in _Unity_ using the _Animation Compression_ set to **Optimal**. Use the _Animation Masking_ feature to further reduce the size of the animation in the build.
+복잡한 리그(DCC 패키지에서 애니메이션을 구현하려면 복잡하게 됨)를 사용하여 가능한 최소한의 키를 사용하여 간단한 단일 계층 리그 스켈레톤 및 애니메이션을 생성하고 _Animation Compression_을 다음으로 설정하여 _Unity_에서 가져오는 것이 가장 좋습니다. **최적**. _애니메이션 마스킹_ 기능을 사용하여 빌드에서 애니메이션의 크기를 더 줄일 수 있습니다. 
 
-The delta between the most optimized and least optimized situation presented in this test, for the same animation, was over 500 KB. If the project has a conservative 20 animations per each character and 10 characters loaded at the same time, that could result in almost 100 MB of wasted runtime memory, which on a low end device such as the iPhone 6s represents a large chunk of the usable memory (and this is worrisome because, for 3D projects, textures typically present an even bigger threat to excessive memory usage and could exceed the limits if the animations are also bulky).
+동일한 애니메이션에 대해 이 테스트에서 이용 된 가장 최적화된 상황과 그 반대 상황 간의 차이는 500KB 이상이었습니다. 프로젝트에 각 캐릭터당 20개의 애니메이션이 있고 동시에 로드되는 10개의 캐릭터가 있는 경우 거의 100MB의 런타임 메모리 낭비가 발생할 수 있습니다. 메모리(3D 프로젝트의 경우 텍스처가 일반적으로 메모리 사용에 훨씬 더 문제가 되는 경우가 많습니다만 애니메이션도 갯수가 많은 경우 제한을 초과할 수 있기 때문에 이것은 신경써야 하는 일입니다.)
 
 ### Detailed Explanation 
-To best optimize and minimize the memory usage of an animation clip, the following are universally recommended:
-1. The skeleton/rig used to create/define the [Unity Avatar](https://docs.unity3d.com/Manual/class-Avatar.html) should contain the rig and the mesh, but no animation. The image below showcases a full complex rig with its hierarchy on the left side and a "simplified"/single hierarchy rig (ready for export to Unity on the right side).
+애니메이션 클립의 메모리 사용량을 최적화하고 최소화하려면 일반적으로 다음을 권장합니다.
+1. [Unity Avatar](https://docs.unity3d.com/Manual/class-Avatar.html)를 생성/정의하는 데 사용되는 Skeleton/Rig는 Rig와 Mesh를 포함해야 하지만 애니메이션은 포함하지 않아야 합니다. 아래 이미지는 왼쪽에 계층 구조가 있고 "단순화"/단일 계층 구조(오른쪽에 Unity로 내보낼 준비가 됨)가 있는 전체 리그를 보여줍니다.
 
 ![](/Screenshots/RigInDCC.png)
 
-Taking a step forward, the right side of the image above is continued in the image below where it exemplifies a skeleton .fbx file that only contains the model and the single hierarchy chain rig (as seen in _Unity_).
-
+한 걸음 더 나아가 위 이미지의 오른쪽은 모델과 단일 계층 체인 Rig(_Unity_에서 볼 수 있음)만 포함하는 Skeleton .fbx 파일을 아래 이미지에서 확인할 수 있습니다.
 ![](/Screenshots/SkeletonContents.png)
 
-2. The _Avatar_ generated from the rig should be used for all animations that are supposed to share that rig (unless there is an explicit need for a new _Avatar_, for example, having to use animations that were not created on/for this rig with this rig), otherwise, each animation will end up with its own avatar and will cost additional memory usage. To use an existent _Avatar_ for an animation, the user needs to define it in the import options for the animations as demonstrated in the image below. It is very important to only create one _Avatar_ for a rig/character setup. The original skeleton + mesh(es) used to create the _Avatar_ need to contain everything needed to achieve all necessary motion or deformation for that rig. All animations intended to work with the rig need only to be pointed to the existing _Avatar_. By failing to do this setup, the user incurs an added cost for the new _Avatar_, but may additionally incur cost for extrenous data not being eliminated from the animation file (such as a mesh that should not exist or be ignore or such as rig controllers).
+2. 리그에서 생성된 _Avatar_는 해당 Rig를 공유해야 하는 모든 애니메이션에 사용해야 합니다. (그렇지 않으면 각 애니메이션이 자체 아바타로 끝나고 추가 메모리 사용량이 필요합니다. 애니메이션에 기존 _Avatar_를 사용하려면 사용자가 아래 이미지와 같이 애니메이션에 대한 가져오기 옵션에서 정의해야 합니다. Rig/Character 설정에 대해 _Avatar_를 하나만 만드는 것이 매우 중요합니다. _Avatar_를 만드는 데 사용된 원래 skeleton + Mesh는 해당 Rig에 필요한 모든 모션 또는 Deformation을 달성하는 데 필요한 모든 것을 포함해야 합니다. 리그와 함께 작동하도록 의도된 모든 애니메이션은 기존 _Avatar_를 가리키기만 하면 됩니다. 이 설정을 수행하지 않으면 사용자는 새로운 _Avatar_에 대한 추가 비용이 발생하지만 애니메이션 파일에서 제거되지 않는 외부 데이터(예: 존재하지 않거나 무시되어서는 안 되는 Mesh 또는 Rig 컨트롤러와 같은 외부 데이터)에 대한 추가 비용이 발생할 수 있습니다. ).
 
 ![](/Screenshots/ReuseAvatar.png)
 
-3.  No single animation file should contain the mesh. Each animation should only contain the rig joints and the animation(s) on them (speaking strictly about the exported / published file, not the animation source file). As demonstrated in the examples in the repository, having the mesh in the animation file does not increase the animation size in memory in the built project (because only the animation data is used to generate the _Unity Animation Clip_), but it considerably increases the animation file size on disk. In this example, the size delta is about 300 KB per file. Multiply that by 50 animations per character, in a project of 100 characters, that is over 1.4 GB of wasted space. Additionally, having the mesh in the animation file presents the added risk of accidentally using that mesh in the game in a scene, at which point _Unity_ would have a duplicate of that mesh in memory and the actual runtime memory will also increase by 300 KB times the number of accidents. The image below exemplifies an animation .fbx file that only contains the single hierarchy chain rig with animation on it. It is important to note that the animation is not visible in the scene preview window when dragged directly in the scene because it needs to be applied to an already created _Avatar_.
+3. 단일 애니메이션 파일에는 메시가 포함되어서는 안 됩니다. 각 애니메이션에는 리그 조인트와 그에 대한 애니메이션만 포함되어야 합니다(엄밀히 말하면 애니메이션 소스 파일이 아니라 Export 파일에 관한 것임). 리포지토리의 예에서 보여주듯이 애니메이션 파일에 메시를 포함한다고 해서 빌드된 프로젝트의 메모리에 있는 애니메이션 크기가 증가하지 않습니다(애니메이션 데이터만 _Unity 애니메이션 클립_을 생성하는 데 사용되기 때문). 그러나 애니메이션이 상당히 증가합니다. 디스크의 파일 크기. 이 예에서 크기 차이는 파일당 약 300KB입니다. 100 개의 캐릭터를 사용하는 프로젝트에서 캐릭터당 50개의 애니메이션을 곱하면 1.4GB가 넘는 공간이 낭비됩니다.또한 애니메이션 파일에 메시가 있으면 게임내 Scene 에서 해당 메시를 실수로 사용할 위험이 추가됩니다. 이 경우 _Unity_는 메모리에 해당 메시의 복제본을 갖게 되고 실제 런타임 메모리도 300KB 배 증가합니다. 아래 이미지는 애니메이션이 있는 단일 계층 체인 Rig만 포함하는 애니메이션 .fbx 파일의 예입니다. 애니메이션은 이미 생성된 _Avatar_에 적용해야 하기 때문에 Scene에서 직접 드래그하면 장면 미리보기 창에 애니메이션이 표시되지 않는다는 점에 유의하는 것이 중요합니다.
 
-In the test data, we have built two projects: one with the animation with no mesh and one with the animation with the same mesh. The results are as follows:
-- the build size for both projects was 27609 KB
-- the animation without the mesh was 750 KB on disk, while the animation with the mesh was 1033 KB on disk
-- the animation clip (1) for both was 17 KB in the runtime memory 
-- the mesh (1) for both was 372.3 KB in runtime Memory
+테스트 데이터에서 우리는 두 개의 프로젝트를 만들었습니다. 하나는 메시가 없고 애니메이션이 있는 프로젝트이고 다른 하나는 동일한 메시가 있고 애니메이션이 있는 프로젝트입니다. 결과는 다음과 같습니다.
+- 두 프로젝트의 빌드 크기는 27609KB였습니다.
+- 메시가 없는 애니메이션은 디스크에서 750KB인 반면 메시가 있는 애니메이션은 디스크에서 1033KB였습니다.
+- 둘 다에 대한 애니메이션 클립(1)은 런타임 메모리에서 17KB였습니다.
+- 둘 다에 대한 메시(1)는 런타임 메모리에서 372.3KB였습니다. 
 
-Conclusions:
-- even if the mesh exists in the animation file, as long as an already existing _Avatar_ is being used (as opposed to a new one being generated), the mesh will not be duplicated in memory and ignored
-- although having a mesh in the animation might not impact the runtime memory, it may increase size on disk (project size), import times and general editor performance 
+결론:
+- 애니메이션 파일에 메시가 존재하더라도 이미 존재하는 _Avatar_를 사용하는 한(새로 생성되는 것과 반대), 메시는 메모리에서 복제되지 않고 무시됩니다.
+- 애니메이션에 메시가 있으면 런타임 메모리에 영향을 미치지 않을 수 있지만 디스크 크기(프로젝트 크기), 가져오기 시간 및 일반 편집기 성능이 증가할 수 있습니다.
 
 ![](/Screenshots/AnimationContents.png)
 
-Although not universally applicable, we recommend the following settings (unless advanced users have tested and profiled specialized branching from these standards):
-1.If the goal is to minimize memory, _Anim. Compression_ should be set to **Optimal**. For mobile games and application, **Optimal** is most likely the best choice for any animations that are used for gameplay (cinematic animations could be less compressed, if needed). The three animation compression options are: "Off", "Optimal" and "Keyframe Reduction". In most cases, "Optimal" is the option best suited for the best animation compression resulting in a smaller memory footprint. **Optimal** will attempt keyframe reduction, but will result in a lower quality animation asn it has worse overall in-between frames (less memory at the cost of worse interpolation in between keys). Fine tuning each setting for each animation may provide better results, but it is likely a solution that cannot scale for hundreds of animations. In this demo, almost across the board, using the "Optimal" setting provided significant Memory reduction. Below are a few of the examples:
-- the short walk animation using keyed poses only and imported using "Optimal" compression was 17 KB <> using the "Keyframe Reduction" option, the same animation was 43.6 KB <> using the "Off" option (no compression), the same animation was 70 KB
-- the long walk animation using all keys baked and imported using "Optimal" compression was 103 KB <> using the "Keyframe Reduction" option, the same animation was 293.6 KB <> using the "Off" option (no compression), the same animation was 614 KB
-As observed in the examples, above, the difference can be 500 KB on a long (300 frames) animation, which can quickly add up.
+보편적으로 적용할 수 있는 것은 아니지만 다음 설정을 권장합니다(프로젝트 별로 프로파일링하는 것이 가장 정확합니다).
+1.메모리 최소화가 목적이라면 _Anim. 압축_은 **최적**으로 설정해야 합니다. 모바일 게임 및 애플리케이션의 경우 **최적**은 게임 플레이에 사용되는 모든 애니메이션에 가장 적합한 선택입니다(필요한 경우 영화 애니메이션은 덜 압축될 수 있음). 세 가지 애니메이션 압축 옵션은 "Off", "Optimal" 및 "Keyframe Reduction"입니다. 대부분의 경우 "최적"은 최상의 애니메이션 압축에 가장 적합한 옵션으로 메모리 공간을 더 적게 차지합니다. **최적**은 키프레임 축소를 시도하지만 전체 프레임 사이가 더 나빠지기 때문에 애니메이션 품질이 저하됩니다(키 사이의 보간이 나빠지는 대신 메모리가 적음). 각 애니메이션에 대한 각 설정을 미세 조정하면 더 나은 결과를 얻을 수 있지만 수백 개의 애니메이션에 대해 확장할 수 없는 솔루션일 가능성이 높습니다. 이 데모에서는 "최적" 설정을 사용하여 메모리를 크게 줄였습니다. 다음은 몇 가지 예입니다.
+- 키가 있는 포즈만 사용하고 "최적" 압축을 사용하여 가져온 짧은 걷기 애니메이션은 "키프레임 축소" 옵션을 사용하여 17KB <>였으며 동일한 애니메이션은 "끄기" 옵션(압축 없음)을 사용하여 43.6KB <>였습니다. 애니메이션은 70KB였습니다.
+- "최적" 압축을 사용하여 굽고 가져온 모든 키를 사용하는 긴 걷기 애니메이션은 "키프레임 감소" 옵션을 사용하여 103KB <>였고, 동일한 애니메이션이 "끄기" 옵션(압축 없음)을 사용하여 293.6KB <>였습니다. 애니메이션은 614KB였습니다.
+위의 예에서 볼 수 있듯이, 그 차이는 긴(300프레임) 애니메이션에서 500KB가 될 수 있으며, 이는 빠르게 합산될 수 있습니다.
 
 ![](/Screenshots/AnimationCompressionOptimal.png)
 
-Additionally, here are some common mistakes when working with animation data coming from DCC packages.
-1. Each of the rig and the animation .fbx files should only contain what is commonly referred to as the single hierarchy joint chain. Typically, animation rigs are very complex in the DCC package to allow the animator extensive control over the "base" skeleton. This complex setup usually contains IK (inverse kinematics) controllers and setup, FK (forward kinematic) controllers and setup, helper nodes, etc. Some of these nodes are nodes that are supported by the .fbx format and when _accidentally_ exported, will create empty _GameObjects_ in the _Unity_ hierarchy, but will still contain the animation data and waste memory resources. We recommend exporting **only** the single hierarchy joint chain for both the skeleton/rig (used to generate the Avatar), while for the animation, we recommend exporting only joints that are skinned to the mesh and used directly in the motion (no helper joints) - this process typically requires a standardization (naming or expected content/nodes) across rigs and an automated solution that can differentiate between what is needed in the game engine and what is not needed. It is important to note that when importing the animation as a _Humanoid_ extraneous data might be cleaned up by the system because of the _Humanoid_ bone mapping discarding the junk data, but the same junk data may persist in a _Generic_ import. It is recommended to eliminate the risk by not having it at all. Below is some data from this analysis that backs up this claim:
-- when exported with only the single hierarchy rig and imported as a _Humanoid_, the skeleton was 42.5 KB <> when exported with the full rig and imported as a _Humanoid_, the skeleton was 46.3 KB
-- when exported with only the single hierarchy rig and imported with optimal compression, the short walk animation with all keys baked was 17 KB <> when exported with only the full rig and imported with optimal compression, the short walk animation with all keys baked was 70 KB
-2. Animations should not be set to bake all keyframes on export or be pre-baked in the original source animation file. If an animation is pre-baked on all keyframes in the original source file, it is very difficult to update and iterate on the file. Additionally, it automatically means the exported result will be baked as well. Similarly, if an animation is set to be baked on export, all keyframes in range will have an animation key resulting in a large animation data set. Unity has ways of compressing the data that is present in the animation clip (for example the [Animation Compression](https://docs.unity3d.com/Manual/class-AnimationClip.html) import settings), but it is even better if only the needed keyframes are kept. If the artistic quality is not met because of how _Unity_ interprets the animation curves differently than the DCC packages, the user can either selectively bake a problematic section of the animation (as opposed to baking the entire animation) or disable the [_Resample Curves_](https://docs.unity3d.com/Manual/class-AnimationClip.html) option (the option is enabled by default - if disabled it will "keep animation curves as they were originally authored". 
+또한 DCC 패키지에서 가져온 애니메이션 데이터로 작업할 때 몇 가지 일반적인 실수가 있습니다.
+1. 각 Rig 및 애니메이션 .fbx 파일에는 일반적으로 단일 계층 조인트 체인이라고 하는 내용만 포함되어야 합니다. 일반적으로 애니메이션 Rig는 DCC 패키지에서 매우 복잡하여 애니메이터가 "기본" 골격을 광범위하게 제어할 수 있습니다. 이 복잡한 설정에는 일반적으로 IK(역운동학) 컨트롤러 및 설정, FK(순운동학) 컨트롤러 및 설정, 도우미 노드 등이 포함됩니다. 이러한 노드 중 일부는 .fbx 형식에서 지원하는 노드이며 _실수로_ 내보내면 빈 노드가 생성됩니다. _GameObjects_는 _Unity_ 계층에 있지만 여전히 애니메이션 데이터를 포함하고 메모리 리소스를 낭비합니다. Skeleton/Rig(아바타 생성에 사용) 모두에 대해 단일 계층 조인트 체인을 **만** 내보내는 것이 좋으며, 애니메이션의 경우 메시에 스키닝되고 모션에서 직접 사용되는 조인트만 내보내는 것이 좋습니다(Helper Joint 없음) - 이 프로세스에는 일반적으로 Rig 전반에 걸친 표준화(이름 지정 또는 예상 콘텐츠/노드)와 게임 엔진에 필요한 것과 필요하지 않은 것을 구별할 수 있는 자동화 솔루션이 필요합니다. 애니메이션을 _Humanoid_로 임포트할 때 _Humanoid_ Bone 매핑이 정크 데이터를 버리기 때문에 시스템에 의해 관련 없는 데이터가 정리될 수 있지만 동일한 정크 데이터가 _Generic_ 가져오기에서 유지될 수 있다는 점에 유의하는 것이 중요합니다. 필요한 데이터만 사용하여 메모리 추가 사용의 위험을 제거하는 것이 좋습니다. 다음은 이 주장을 뒷받침하는 이 분석의 일부 데이터입니다.
+- 단일 계층 리그로만 내보내고 _Humanoid_로 가져올 때 스켈레톤은 전체 리그와 함께 내보내고 _Humanoid_로 가져올 때 스켈레톤이 46.3KB였습니다.
+- 단일 계층 구조만으로 내보내고 최적의 압축으로 가져올 때 모든 키가 구운 짧은 걷기 애니메이션은 전체 리그로만 내보내고 최적의 압축으로 가져올 때 17KB <>였고 모든 키가 구운 짧은 걷기 애니메이션은 다음과 같았습니다. 70KB
+2. 애니메이션은 내보낼 때 모든 키프레임을 굽거나 원본 소스 애니메이션 파일에서 미리 굽도록 설정해서는 안 됩니다. 애니메이션이 원본 소스 파일의 모든 키프레임에 미리 구워지면 파일을 업데이트하고 반복하기가 매우 어렵습니다. 또한 내보낸 결과도 자동으로 구워집니다. 마찬가지로 애니메이션이 내보낼 때 구워지도록 설정되어 있으면 범위의 모든 키프레임에 애니메이션 키가 있어 큰 애니메이션 데이터 세트가 생성됩니다. Unity에는 애니메이션 클립에 있는 데이터를 압축하는 방법(예: [Animation Compression](https://docs.unity3d.com/Manual/class-AnimationClip.html) 가져오기 설정)이 있고 훨씬 더 좋습니다. 필요한 키프레임만 유지되는 경우. _Unity_가 DCC 패키지와 다르게 애니메이션 곡선을 해석하는 방식으로 인해 예술적 품질이 충족되지 않는 경우 사용자는 전체 애니메이션을 베이킹하는 것과 반대로 애니메이션의 문제가 있는 섹션을 선택적으로 베이킹하거나 [_Resample Curves_]( https://docs.unity3d.com/Manual/class-AnimationClip.html) 옵션(옵션은 기본적으로 활성화되어 있습니다. 비활성화하면 "애니메이션 곡선을 원래 작성된 대로 유지"합니다.
 
-If animations are imported into _Unity_ with garbage data (for example controllers or helper nodes that do not affect the animation), the implications and performance degradation are considerably emphasized in the _Editor_ workflows. In the project, the worst-case scenario for a full rig, long animation walk cycle (300 frames) with all keys baked was 21453 KB (about 21 MB) on disk. The same animation, in the best-case scenario for a simplified single hierarchy rig, for the same long animation walk cycle, with only necessary key poses (and a few inbetweens) baked was 1865 KB (about 1.8 MB). The difference between the best-case scenario and the worst-case scenario is about 19 MB, per animation file. With a few hundred animations, the disk space bloat reaches several GB of data. Additionally, larger animation files can affect import times and affect general _Editor_ performance.
+애니메이션을 가비지 데이터(예: 애니메이션에 영향을 미치지 않는 컨트롤러 또는 helper 노드)와 함께 _Unity_로 가져오면 _Editor_ workflow 에서 성능 저하가 발생합니다. 프로젝트에서 모든 키가 베이크된 전체 Rig, 긴 애니메이션 걷기 주기(300프레임)에 대한 최악의 시나리오는 디스크에서 21453KB(약 21MB)였습니다. 단순화된 단일 계층 구조 리그에 대한 최상의 시나리오에서 동일한 긴 애니메이션 걷기 주기에 대해 필요한 주요 포즈(및 몇 가지 중간)만 베이크된 동일한 애니메이션은 1865KB(약 1.8MB)였습니다. 최상의 시나리오와 최악의 시나리오의 차이는 애니메이션 파일당 약 19MB입니다. 수백 개의 애니메이션으로 디스크 추가 사용은수 GB에 이릅니다. 또한 더 큰 애니메이션 파일은 가져오기 시간에 영향을 미치고 일반적인 _Editor_ 성능에 영향을 줄 수 있습니다.
 
-Lastly, even if rigs and animations are imported into Unity with garbage data and the user does not have access to improve the source file or cannot improve the source file, Unity offers the [Animation Mask](https://docs.unity3d.com/Manual/AnimationMaskOnImportedClips.html) as a way to remove this data during the build process. An _Animation Mask_ is a Unity serialized asset that is linked to a skeleton/avatar and can be used and re-used to occlude any animation that uses the same _Avatar_. As seen in the image above, the masking can be done visually on a humanoid or by directly ignoring a hierarchy of transforms. It is important to note that, during the build process, the masked animation will be removed from the clip and will result in a lighter animation clip (memory wise) - but all animation in the clip will be lost. 
+마지막으로, Rig와 애니메이션을 가비지 데이터와 함께 Unity로 가져오고 사용자가 소스 파일을 개선할 수 없거나 소스 파일을 개선할 수 없는 경우에도 Unity는 [애니메이션 마스크](https://docs.unity3d.com)를 제공합니다. /Manual/AnimationMaskOnImportedClips.html) 빌드 프로세스 중에 이 데이터를 제거하는 방법입니다. _애니메이션 마스크_는 skeleton/아바타에 연결되어 동일한 _아바타_를 사용하는 모든 애니메이션을 차단하는 데 사용 및 재사용할 수 있는 Unity serialized asset입니다. 위 이미지에서 볼 수 있듯이 마스킹은 휴머노이드에서 시각적으로 수행하거나 변환 계층을 직접 무시하여 수행할 수 있습니다. 빌드 프로세스 동안 마스크된 애니메이션이 클립에서 제거되어 더 가벼운 애니메이션 클립이 생성되지만(메모리 측면에서) 클립의 모든 애니메이션이 손실된다는 점에 유의하는 것이 중요합니다.
 
 ![](/Screenshots/AnimationMask.PNG)
 
-Most of these rules apply for most projects that need to minimize memory usage for animation clips. For additional information and the technical explanation of these conclusions were reached, please take a look at the **Raw Data** and **Legend** sections below. 
+이러한 규칙의 대부분은 애니메이션 클립의 메모리 사용량을 최소화해야 하는 대부분의 프로젝트에 적용됩니다. 이러한 결론에 대한 추가 정보 및 기술적인 설명은 아래 **Raw 데이터** 및 **범례** 섹션을 참조하십시오.
 
 ## Special Notes
-All the data was captured at runtime from a development build running on an iPhone 6s (released in 2015).
+모든 데이터는 iPhone 6s(2015년 출시)에서 실행되는 개발 빌드에서 런타임 시 캡처되었습니다.
 
 ## Raw Data
-The data table below contains the raw data of memory usage, as extracted from the [Unity Memory Profiler](https://docs.unity3d.com/Manual/ProfilerMemory.html). All animations were applied to two game objects and captured together in a single **Memory Snapshot**. The three columns with numbers represent, in order (left to right):
-- the in-memory size of the rig/animation when imported as a Humanoid
-- the in-memory size of the rig/animation when imported as Generic
-- the .fbx file size on disk
+아래 데이터 테이블은 [Unity Memory Profiler](https://docs.unity3d.com/Manual/ProfilerMemory.html)에서 추출한 메모리 사용량의 Raw 데이터를 포함합니다. 모든 애니메이션은 두 개의 게임 개체에 적용되었으며 단일 **메모리 스냅샷**에 함께 캡처되었습니다. 숫자가 있는 세 개의 열은 순서대로(왼쪽에서 오른쪽으로) 다음을 나타냅니다.
+- 휴머노이드로 가져올 때 리그/애니메이션의 메모리 내 크기
+- 일반으로 가져올 때 리그/애니메이션의 메모리 내 크기
+- 디스크의 .fbx 파일 크기
 
 | Animation Clip Name                                                         | Humanoid In Memory Size (KB) | Generic In Memory Size (KB) | On Disk Size (KB) |
 |-----------------------------------------------------------------------------|:----------------------------:|:---------------------------:|:-----------------:|
